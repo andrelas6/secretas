@@ -1,7 +1,8 @@
 # AGENTS.md — Working Agreement
 
 This file tells AI coding agents how to collaborate on **VaultKit**. Read it before
-acting. The full project plan lives in `README.md`.
+acting. The full project plan lives in `docs/PROJECT_PLAN.md`; developer setup and
+run instructions live in `README.md`.
 
 ## Roles
 
@@ -16,7 +17,7 @@ acting. The full project plan lives in `README.md`.
 - **Teach, don't just deliver.** When proposing an approach, explain the reasoning and
   the alternatives so the user learns the domain (crypto, Go, K8s, SRE).
 - **Plan first.** For any non-trivial task, present a plan and get sign-off before code.
-- **One step at a time.** Follow the build sequence in `README.md`. Finish and verify a
+- **One step at a time.** Follow the build sequence in `docs/PROJECT_PLAN.md`. Finish and verify a
   step before moving on. Don't race ahead to later phases.
 - **Surface tradeoffs.** This project's value is in explainable decisions
   (zero-knowledge vs server-side, AppRole vs API keys, PBKDF2 params). Make those
@@ -26,12 +27,12 @@ acting. The full project plan lives in `README.md`.
 ## Locked technical decisions
 
 - Backend language: **Go**
-- See `README.md` §8 for the full technology decisions table.
+- See `docs/PROJECT_PLAN.md` §8 for the full technology decisions table.
 
 ## Project state
 
 - Phase: **1 — Core app** (not started).
-- Next concrete step: **PostgreSQL schema + migrations** (`README.md` §7, Phase 1).
+- Next concrete step: **PostgreSQL schema + migrations** (`docs/PROJECT_PLAN.md` §7, Phase 1).
 
 ## Ground rules
 
