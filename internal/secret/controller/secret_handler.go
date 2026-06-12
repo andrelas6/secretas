@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 )
 
@@ -18,8 +19,9 @@ func (h SecretHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.NewEncoder(w).Encode(secret)
-
+	if err := json.NewEncoder(w).Encode(secret); err != nil {
+		log.Printf("encoding secret response: %v", err)
+	}
 }
 
 func decodeSecretDTO(r *http.Request) (SecretDTO, error) {

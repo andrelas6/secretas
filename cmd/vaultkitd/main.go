@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -17,36 +16,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-type rootHandler struct {
-}
-
-type Response struct {
-	Message string `json:"message"`
-	Status  int    `json:"status"`
-}
-
-func (h rootHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(Response{
-		Message: "hello",
-		Status:  200,
-	})
-}
-
 func main() {
-	// mux := http.NewServeMux()
-	// r := rootHandler{}
-	// h := controller.SecretHandler{}
-
-	// mux.Handle("/", r)
-	// mux.Handle("/secret", h)
-
-	// fmt.Println("Server running on port 3001")
-	// if err := http.ListenAndServe(":3001", mux); err != nil {
-	// 	fmt.Println("could not start the server", err)
-	// 	os.Exit(1)
-	// }
-	//
 	if err := run(); err != nil {
 		log.Fatalln(err)
 	}
