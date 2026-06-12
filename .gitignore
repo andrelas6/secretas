@@ -1,0 +1,12 @@
+# Compiled binaries
+/vaultkitd
+/vaultkit
+/bin/
+*.exe
+
+# Local env — never commit secrets (AGENTS.md ground rule)
+.env
+.env.*
+
+# OS / editor cruft
+.DS_Store
