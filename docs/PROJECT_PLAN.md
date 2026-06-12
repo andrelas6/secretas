@@ -219,7 +219,7 @@ A team rotates their production database password. They update the value in Vaul
 **Purpose:** Store and retrieve encrypted blobs, handle authentication, manage machine tokens, emit metrics, dispatch webhooks.
 
 **Tech stack (Go path):**
-- Go 1.22+
+- Go 1.26+ (currently 1.26.4 — see the [README](../README.md) for the authoritative version)
 - `chi` or `gin` (HTTP router)
 - `pgx` (PostgreSQL driver)
 - `go-redis` (Redis client)
