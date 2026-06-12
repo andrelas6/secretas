@@ -1,0 +1,26 @@
+#!/bin/sh
+# Fast static checks, mirroring CI's fmt/vet/lint steps.
+# Enable once per clone: git config core.hooksPath .githooks
+set -e
+
+if ! command -v golangci-lint >/dev/null 2>&1; then
+  echo "pre-commit: golangci-lint not found."
+  echo "  install (binary, recommended): https://golangci-lint.run/docs/welcome/install/local/"
+  exit 1
+fi
+
+echo "pre-commit: gofmt"
+unformatted=$(gofmt -l .)
+if [ -n "$unformatted" ]; then
+  echo "These files are not gofmt'd (run: gofmt -w .):"
+  echo "$unformatted"
+  exit 1
+fi
+
+echo "pre-commit: go vet"
+go vet ./...
+
+echo "pre-commit: golangci-lint"
+golangci-lint run ./...
+
+echo "pre-commit: ok"

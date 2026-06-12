@@ -43,11 +43,9 @@ jobs:
         run: go vet ./...
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: latest
-          install-mode: goinstall   # compile with the runner's Go 1.26 toolchain
-                                    # (prebuilt binaries lag new Go releases)
+          version: v2.12.2   # pinned; keep in lockstep with README + local install
 
       - name: Build
         run: go build ./...
