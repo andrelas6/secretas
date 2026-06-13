@@ -13,6 +13,7 @@ import (
 
 	"github.com/andrelas6/secretas/internal/observability"
 	"github.com/andrelas6/secretas/internal/secret/controller"
+	"go.opentelemetry.io/contrib/bridges/otelslog"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
@@ -21,6 +22,10 @@ func main() {
 		log.Fatalln(err)
 	}
 }
+
+var (
+	logger = otelslog.NewLogger("main")
+)
 
 func run() (err error) {
 	// Handle SIGINT (CTRL+C) gracefully
@@ -50,6 +55,7 @@ func run() (err error) {
 
 	srvErr := make(chan error, 1)
 	go func() {
+		logger.Info("Starting server on localhost:3001")
 		srvErr <- srv.ListenAndServe()
 	}()
 
