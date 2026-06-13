@@ -3,6 +3,9 @@
 # Enable once per clone: git config core.hooksPath .githooks
 set -e
 
+echo "pre-push: go mod tidy check"
+go mod tidy -diff
+
 echo "pre-push: go test -race ./..."
 go test -race ./...
 
