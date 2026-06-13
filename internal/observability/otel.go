@@ -10,9 +10,12 @@ import (
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/stdout/stdoutlog"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/log/global"
 	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
@@ -40,6 +43,7 @@ func SetupOTelSDK(ctx context.Context) (func(context.Context) error, error) {
 	prop := newPropagator()
 	otel.SetTextMapPropagator(prop)
 
+	// -- setup tracing
 	tracerProvider, err := newTraceProvider(ctx, "vaultkit-api")
 
 	if err != nil {
@@ -50,6 +54,7 @@ func SetupOTelSDK(ctx context.Context) (func(context.Context) error, error) {
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
+	// -- setup metrics
 	meterProvider, err := newMeterProvider(ctx, "vaultkit-api")
 	if err != nil {
 		handleErr(err)
@@ -57,6 +62,15 @@ func SetupOTelSDK(ctx context.Context) (func(context.Context) error, error) {
 	}
 	shutdownFuncs = append(shutdownFuncs, meterProvider.Shutdown)
 	otel.SetMeterProvider(meterProvider)
+
+	// -- setup logs
+	loggerProvider, err := newLoggerProvider(ctx, "vaultkit-api")
+	if err != nil {
+		handleErr(err)
+		return shutdown, err
+	}
+	shutdownFuncs = append(shutdownFuncs, loggerProvider.Shutdown)
+	global.SetLoggerProvider(loggerProvider)
 
 	return shutdown, err
 }
@@ -76,7 +90,7 @@ func newOtelFile(filename string) (*os.File, error) {
 
 	f, err := os.OpenFile(
 		filepath.Join(wd, ".otel", filename),
-		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 		0o644,
 	)
 
@@ -161,4 +175,45 @@ func newTraceProvider(ctx context.Context, serviceName string) (*trace.TracerPro
 	)
 
 	return tracerProvider, nil
+}
+
+func newLoggerProvider(ctx context.Context, serviceName string) (*log.LoggerProvider, error) {
+	file, err := newOtelFile("logs.json")
+	if err != nil {
+		fmt.Println("observability.newLoggerProvider: could not create logs.json file", err)
+		return nil, err
+	}
+
+	logExporterFile, err := stdoutlog.New(
+		stdoutlog.WithWriter(file),
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	logExporterStdOut, err := stdoutlog.New(
+		stdoutlog.WithPrettyPrint(),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := resource.New(
+		ctx,
+		resource.WithAttributes(
+			attribute.String("service.name", serviceName),
+		),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("create logger resource: %w", err)
+	}
+
+	loggerProvider := log.NewLoggerProvider(
+		log.WithProcessor(log.NewBatchProcessor(logExporterFile)),
+		log.WithProcessor(log.NewBatchProcessor(logExporterStdOut)),
+		log.WithResource(res),
+	)
+	return loggerProvider, nil
 }
