@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -9,8 +10,11 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
+	"github.com/andrelas6/secretas/internal/env"
+	"github.com/andrelas6/secretas/internal/k8s/health"
 	"github.com/andrelas6/secretas/internal/observability"
 	"github.com/andrelas6/secretas/internal/secret/controller"
 	"go.opentelemetry.io/contrib/bridges/otelslog"
@@ -28,10 +32,18 @@ var (
 )
 
 func run() (err error) {
-	// Handle SIGINT (CTRL+C) gracefully
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	// Interrupt - Handle SIGINT (CTRL+C) gracefully on all OS platforms
+	// syscall.SIGTERM - Linux specific
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
 	defer stop()
+
+	// env vars
+	env, err := env.NewEnv(".env")
+
+	if err != nil {
+		return err
+	}
 
 	otelShutdown, err := observability.SetupOTelSDK(ctx)
 	if err != nil {
@@ -46,7 +58,7 @@ func run() (err error) {
 	}()
 
 	srv := &http.Server{
-		Addr:         ":3001",
+		Addr:         fmt.Sprintf(":%s", cmp.Or(env.GetEnv("PORT"), "3001")),
 		BaseContext:  func(net.Listener) context.Context { return ctx },
 		ReadTimeout:  time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -85,8 +97,10 @@ func run() (err error) {
 func newHttpHandler() http.Handler {
 	mux := http.NewServeMux()
 	secretHandler := controller.SecretHandler{}
+	healthzHandler := health.HealthzHandler{}
 
 	mux.Handle("/secret", secretHandler)
+	mux.Handle("/healthz", healthzHandler)
 
 	handler := otelhttp.NewHandler(mux, "vaultkit-http")
 

@@ -1,0 +1,11 @@
+.git
+.github
+.githooks
+bin/
+vaultkitd
+.otel
+docs/
+*.md
+.env
+.env.*
+.DS_Store
