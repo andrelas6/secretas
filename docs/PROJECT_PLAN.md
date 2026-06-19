@@ -458,6 +458,19 @@ Push to main
 
 Build in this order — each phase produces something usable before moving to the next.
 
+> **Deploy-first amendment.** The original sequence put Kubernetes in Phase 3. In
+> practice we front-loaded a thin **Phase 0** that proves the full
+> source → image → CI/CD → pod path while the app is still trivial, so feature work
+> ships continuously instead of hitting deployment surprises late. The heavyweight
+> infra (Helm, Terraform, Ingress, cert-manager, External Secrets) stays in Phase 3.
+
+**Phase 0 — Deployable walking skeleton (in progress)**
+Make the scaffold deployable end-to-end with mocked data and minimal instrumentation.
+- [x] App made K8s-correct: SIGTERM graceful shutdown, `/healthz` probe, env-driven `PORT`
+- [x] Multi-stage distroless Dockerfile (static binary, nonroot, ~10MB) + `.dockerignore`
+- [ ] CI/CD: build & publish image to GHCR on merge to `main`
+- [ ] Minimal K8s manifests (`deploy/k8s/`): Deployment + Service with probes
+
 **Phase 1 — Core app (4–6 weeks)**
 Get the zero-knowledge vault working locally. Docker Compose for local dev (backend + postgres + redis). No Kubernetes yet.
 - [ ] PostgreSQL schema + migrations

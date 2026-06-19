@@ -31,8 +31,10 @@ run instructions live in `README.md`.
 
 ## Project state
 
-- Phase: **1 — Core app** (not started).
-- Next concrete step: **PostgreSQL schema + migrations** (`docs/PROJECT_PLAN.md` §7, Phase 1).
+- Phase: **0 — Deployable walking skeleton** (deploy-first; in progress).
+- Done: app made K8s-correct (SIGTERM, `/healthz`, env-driven `PORT`) + distroless Dockerfile.
+- Next concrete step: **CI/CD image publish + minimal K8s manifests** (`docs/PROJECT_PLAN.md` §7, Phase 0).
+- After Phase 0: resume Phase 1 — **PostgreSQL schema + migrations**.
 
 ## Ground rules
 

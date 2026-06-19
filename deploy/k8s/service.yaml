@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultkit
+  labels:
+    app: vaultkit
+spec:
+  type: ClusterIP
+  selector:
+    app: vaultkit
+  ports:
+    - name: http
+      port: 3001
+      targetPort: http

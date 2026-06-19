@@ -7,9 +7,9 @@ This README is the **developer setup guide**: how to run, build, and work on the
 codebase. For the product vision, architecture, and full build plan, see
 [`docs/PROJECT_PLAN.md`](docs/PROJECT_PLAN.md).
 
-**Status:** Phase 1 (core app) — early scaffolding. Currently a Go HTTP server with a
-single placeholder `/secret` endpoint; PostgreSQL, auth, and the vault model are not
-built yet.
+**Status:** Phase 0 (deploy-first walking skeleton). A Go HTTP server with a placeholder
+`/secret` endpoint and a `/healthz` probe, containerized (distroless) and deployable to
+Kubernetes (`deploy/k8s/`). PostgreSQL, auth, and the vault model are not built yet.
 
 ---
 
@@ -57,6 +57,19 @@ go build -o bin/vaultkitd ./cmd/vaultkitd
 
 Same result as `go run`, but you get a single distributable binary and a faster start.
 
+## Running in a container
+
+Build the image and run it (multi-stage, distroless, runs as nonroot):
+
+```bash
+docker build -t vaultkit:dev .
+docker run --rm -p 3001:3001 vaultkit:dev
+```
+
+`PORT` is read from the environment (default `3001`); override with
+`docker run -e PORT=8080 -p 8080:8080 vaultkit:dev`. The server catches `SIGTERM`,
+so `docker stop` shuts it down gracefully.
+
 ## Trying the API
 
 The only endpoint so far is `POST /secret`. It currently **echoes back** the secret
@@ -100,9 +113,13 @@ Notes on current behavior:
 ```
 cmd/vaultkitd/        Server entrypoint (main, graceful shutdown, OTel setup)
 internal/
+  env/                Minimal .env loader with OS-env fallback (PORT, ...)
+  k8s/health/         /healthz handler for liveness/readiness probes
   observability/      OpenTelemetry tracing setup
   secret/controller/  HTTP handler + DTO for the /secret endpoint
 migrations/           (placeholder) SQL migrations — not built yet
+Dockerfile            Multi-stage, distroless container image
+deploy/k8s/           Minimal Kubernetes manifests (Deployment + Service)
 .githooks/            pre-commit / pre-push hooks (see below)
 docs/PROJECT_PLAN.md  Product vision, architecture, build plan
 ```
