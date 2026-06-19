@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultkit
+  labels:
+    app: vaultkit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultkit
+  template:
+    metadata:
+      labels:
+        app: vaultkit
+    spec:
+      # Pod-level hardening. Matches the distroless nonroot image (uid 65532).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vaultkit
+          # Pinned to :latest for the skeleton; switch to the sha-<commit> tag
+          # published by docker-publish.yml for reproducible rollouts.
+          image: ghcr.io/andrelas6/secretas:latest
+          ports:
+            - name: http
+              containerPort: 3001
+          env:
+            - name: PORT
+              value: "3001"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            # readOnlyRootFilesystem is intentionally NOT set: the app writes
+            # OTel telemetry to ./.otel at runtime. Enable it once OTel emits
+            # to stdout instead of files.
